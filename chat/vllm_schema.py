@@ -6,6 +6,8 @@ from uuid import uuid4
 from promplate import Message
 from pydantic import BaseModel, Field
 
+from env import default_model
+
 
 class BaseModel(BaseModel):
     model_config = {"extra": "allow"}
@@ -66,7 +68,7 @@ class ChatCompletionRequest(BaseModel):
     # Ordered by official OpenAI API documentation
     # https://platform.openai.com/docs/api-reference/chat/create
     messages: list[Message]
-    model: str
+    model: str | None = Field(default_model)
     frequency_penalty: float | None = 0.0
     logit_bias: dict[str, float] | None = None
     logprobs: bool | None = False
