@@ -1,0 +1,37 @@
+[project]
+name = "vllm-proxy"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = "~=3.13"
+dependencies = [
+    "fastapi~=0.115.12",
+    "langfuse~=2.60.2",
+    "openai>=1.70.0",
+    "promplate>=0.3.5.2",
+    "python-dotenv>=1.1.0",
+    "uvicorn-hmr==0.0.3",
+]
+
+[tool.m.aliases]
+dev = "uvicorn-hmr --env-file .env"
+
+[tool.ruff]
+line-length = 320
+
+[tool.ruff.lint]
+extend-select = [
+    "I",    # isort
+    "N",    # pep8-naming
+    "W",    # pycodestyle
+    "UP",   # pyupgrade
+    "RUF",  # ruff
+    "FURB", # refurb
+    "C4",   # flake8-comprehensions
+    "ARG",  # flake8-unused-arguments
+    "PIE",  # flake8-pie
+    "PTH",  # flake8-use-pathlib
+    "RSE",  # flake8-raise
+    "SIM",  # flake8-simplify
+    "SLF",  # flake8-self
+]
