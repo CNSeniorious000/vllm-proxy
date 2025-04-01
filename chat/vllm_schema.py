@@ -71,7 +71,7 @@ class ChatCompletionRequest(BaseModel):
     def extra_body(self):
         return self.model_dump(
             exclude={"messages", "model", "stream"},
-            exclude_defaults=True,
+            exclude_unset=True,
         )
 
     @property
