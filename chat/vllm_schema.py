@@ -54,6 +54,19 @@ class ChatCompletionNamedToolChoiceParam(BaseModel):
 
 
 class ChatCompletionRequest(BaseModel):
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": "Say this is a test.",
+                    }
+                ]
+            }
+        },
+    }
+
     @property
     def extra_body(self):
         return self.model_dump(
