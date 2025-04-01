@@ -12,7 +12,7 @@ from chat.client import openai
 
 from .vllm_schema import ChatCompletionRequest
 
-router = APIRouter()
+router = APIRouter(tags=["Chat Completion"])
 
 
 def to_fastapi_response(httpx_response: HttpxResponse):
@@ -20,9 +20,11 @@ def to_fastapi_response(httpx_response: HttpxResponse):
     return Response(content=httpx_response.content, status_code=httpx_response.status_code, media_type=httpx_response.headers.get("Content-Type"))
 
 
+@router.post("/v1/chat/completions", description="Alias for /chat/completions", deprecated=True)
 @router.post("/chat/completions")
-@router.post("/v1/chat/completions")
 async def create_chat_completion(body: ChatCompletionRequest, request: Request):
+    """See [vLLM's docs](https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html#chat-api) for more details"""
+
     def start():
         print(langfuse_context.get_current_trace_url())
         langfuse_context.update_current_trace(input=body.model_dump(exclude_unset=True), metadata={**request.headers})
