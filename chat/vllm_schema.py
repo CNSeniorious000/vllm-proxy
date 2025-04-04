@@ -75,6 +75,17 @@ class ChatCompletionRequest(BaseModel):
         )
 
     @property
+    def prefill(self):
+        return self.continue_final_message and self.messages[-1]["content"]
+
+    @property
+    def inputs(self):
+        data: dict = self.model_dump(exclude_unset=True)
+        if self.prefill:
+            data["messages"].pop()
+        return data
+
+    @property
     def as_kwargs(self):
         return {"messages": self.messages, "model": self.model, "extra_body": self.extra_body}
 
