@@ -1,12 +1,13 @@
 from contextlib import suppress
 from functools import partial
-from json import JSONDecodeError, loads
+from json import JSONDecodeError, dumps, loads
 from operator import call
 
 from fastapi import APIRouter, Request, Response
 from fastapi.responses import StreamingResponse
 from httpx import Response as HttpxResponse
 from langfuse.decorators import langfuse_context, observe
+from openai import APIError
 
 from chat.client import openai
 
@@ -31,6 +32,10 @@ async def create_chat_completion(body: ChatCompletionRequest, request: Request):
         langfuse_context.update_current_trace(input=body.inputs, metadata={**request.headers})
         langfuse_context.flush()
 
+    def error(e: APIError):
+        langfuse_context.update_current_observation(level="ERROR", status_message=e.message, metadata=e.body)
+        langfuse_context.flush()
+
     def end(text: str):
         langfuse_context.update_current_observation(output=text)
         langfuse_context.update_current_trace(output=(body.prefill or "") + text)
@@ -41,7 +46,11 @@ async def create_chat_completion(body: ChatCompletionRequest, request: Request):
         @observe(capture_output=False, capture_input=False, as_type="generation", name="non-streaming response")
         async def completion():
             start()
-            res = await openai.with_raw_response.chat.completions.create(stream=False, **body.as_kwargs)
+            try:
+                res = await openai.with_raw_response.chat.completions.create(stream=False, **body.as_kwargs)
+            except APIError as e:
+                error(e)
+                return Response(dumps(e.body), getattr(e, "status_code", 400), media_type="application/json")
             parsed = res.parse()
             text = parsed.choices[0].message.content
             assert text is not None, parsed
@@ -50,7 +59,17 @@ async def create_chat_completion(body: ChatCompletionRequest, request: Request):
 
         return await completion()
 
-    res = await openai.chat.completions.create(stream=True, **body.as_kwargs)
+    try:
+        res = await openai.chat.completions.create(stream=True, **body.as_kwargs)
+    except APIError as e:
+
+        @call
+        @observe(capture_output=False, capture_input=False, as_type="generation", name="streaming response")
+        def _(e=e):
+            start()
+            error(e)
+
+        return Response(dumps(e.body), getattr(e, "status_code", 400), media_type="application/json")
 
     @partial(StreamingResponse, media_type=res.response.headers.get("Content-Type"), status_code=res.response.status_code)
     @call
