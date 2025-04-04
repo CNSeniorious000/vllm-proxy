@@ -27,10 +27,12 @@ async def create_chat_completion(body: ChatCompletionRequest, request: Request):
 
     def start():
         print(langfuse_context.get_current_trace_url())
+        langfuse_context.update_current_observation(input=body.messages, model=body.model, model_parameters=body.extra_body)
         langfuse_context.update_current_trace(input=body.model_dump(exclude_unset=True), metadata={**request.headers})
+        langfuse_context.flush()
 
     def end(text: str):
-        langfuse_context.update_current_observation(output=text, input=body.messages, model=body.model, model_parameters=body.extra_body)
+        langfuse_context.update_current_observation(output=text)
         langfuse_context.update_current_trace(output=text)
         langfuse_context.flush()
 
