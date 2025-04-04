@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 from env import default_model
 
 
-class BaseModel(BaseModel):
+class BaseModel(BaseModel):  # type: ignore
     model_config = {"extra": "allow"}
 
 

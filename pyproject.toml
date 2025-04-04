@@ -33,3 +33,6 @@ extend-select = [
     "SIM",  # flake8-simplify
     "SLF",  # flake8-self
 ]
+
+[tool.pyright]
+typeCheckingMode = "standard"
